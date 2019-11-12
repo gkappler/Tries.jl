@@ -2,6 +2,7 @@ using Tries
 using Test
 
 @testset "Tries.jl" begin
+    x=Trie((:a,)=>"a", (:a,:b)=>"c", (:a,:c,:d)=>"z", (:a,:b,:d)=>1)
     x=Trie((:a,)=>"a", (:a,:b)=>"c", (:a,:c,:d)=>"z", (:a,:b,:d)=>"y")
     @test eltype(x) == String
     @testset "getindex get splatted path, maybe a getindex of Vararg?" begin

@@ -21,6 +21,17 @@ function Trie(values::Vararg{Pair{NTuple{N,K},T} where N}) where {K,T}
     end
     r
 end
+
+function Trie(values::Vararg{Pair{NTuple{N,K},<:Any} where N}) where {K}
+    r = Trie{K,Any}(missing, Dict{K,Trie{K,Any}}())
+    for (k,v) in values
+        r[k...]=v
+    end
+    r
+end
+
+Trie(values::Base.Generator) = Trie(values...)
+
 Base.keytype(::Type{Trie{K,V}}) where {K,V} = K
 Base.keytype(x::Trie) = keytype(typeof(x))
 Base.eltype(::Type{Trie{K,V}}) where {K,V} = V
