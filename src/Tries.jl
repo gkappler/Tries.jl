@@ -1,23 +1,31 @@
 module Tries
 
-import Base: get!, show, get, isempty, haskey, setindex!, getindex, pairs, keys, values
+import Base: get!, show, get, isempty, haskey, setindex!, getindex, pairs, keys, values, keytype, eltype
 import AbstractTrees
 import AbstractTrees: children, printnode, PreOrderDFS, print_tree
 
-export Trie, subtrie
+export Trie, SubTrie, subtrie
 struct Trie{K,T}
     value::Union{Missing,T}
     nodes::Dict{K,Trie{K,T}}
 end
-struct SubTrie{K,T}
-    path::NTuple{N,K} where N
-    value::Trie{K,T}
-end
-function Base.get(x::Trie{K,T})::T where {K,T}
+function Base.get(x::Trie{K,T})::Union{Missing,T} where {K,T}
     x.value
 end
 Trie{K,T}() where {K,T} = Trie{K,T}(missing, Dict{K,Trie{K,T}}())
 Trie{K,T}(value) where {K,T} = Trie{K,T}(value, Dict{K,Trie{K,T}}())
+function Trie(values::Vararg{Pair{NTuple{N,K},T} where N}) where {K,T}
+    r = Trie{K,T}(missing, Dict{K,Trie{K,T}}())
+    for (k,v) in values
+        r[k...]=v
+    end
+    r
+end
+Base.keytype(::Type{Trie{K,V}}) where {K,V} = K
+Base.keytype(x::Trie) = keytype(typeof(x))
+Base.eltype(::Type{Trie{K,V}}) where {K,V} = V
+Base.eltype(x::Trie) = eltype(typeof(x))
+
 Base.get!(x::Trie{K,T},k) where {K,T} =
     subtrie!(x, k).value
 Base.show(io::IO, x::Trie) =
@@ -65,17 +73,29 @@ function Base.setindex!(x::Trie{K,T}, v, path...) where {K,T}
 end
 
 function Base.getindex(x::Trie{K,T}, path::Vararg) where {K,T}
-    subtrie(x,path...)
+    SubTrie(path,subtrie(x,path...))
 end
+
+struct SubTrie{K,T}
+    path::NTuple{N,K} where N
+    value::Trie{K,T}
+end
+function Base.getindex(x::SubTrie{K,T}, path::Vararg) where {K,T}
+    SubTrie(tuple(x.path...,path...),subtrie(x,path...))
+end
+subtrie(x::SubTrie, a...) =
+    subtrie(x.value,a...)
+
+Base.get(x::SubTrie) = x.value === missing ? missing : get(x.value)
 AbstractTrees.children(x::SubTrie{K,V}) where {K,V} =
     [ SubTrie{K,V}(tuple(x.path..., k), v) for (k,v) in pairs(x.value.nodes) ]
 function AbstractTrees.printnode(io::IO, x::SubTrie{K,V}) where {K,V}
-    print(io,string(x.path[end:end]))
-    ## value(x.value) !== missing && println(io,":",value(x.value))
+    print(io,x.path[end])
+    get(x) !== missing && print(io, " => ", get(x))
 end
 AbstractTrees.children(x::Trie{K,V}) where {K,V} =
     [ SubTrie{K,V}(tuple(k), v) for (k,v) in pairs(x.nodes) ]
-AbstractTrees.printnode(io::IO, x::Trie) = print(io,"TypeDB") ## error("should print key")
+AbstractTrees.printnode(io::IO, x::Trie) = print(io,"Trie{$(keytype(x)),$(eltype(x))}") ## error("should print key")
 
 
 function Base.pairs(x::Trie{K,V}; self=true) where {K,V}
