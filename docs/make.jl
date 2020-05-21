@@ -1,6 +1,4 @@
 push!(LOAD_PATH,"../src")
-using Pkg
-Pkg.activate(".")
 using Documenter: Documenter, makedocs, deploydocs, doctest, DocMeta
 using Tries
 using Test
