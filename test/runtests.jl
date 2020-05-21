@@ -9,7 +9,7 @@ using Test
         @test keytype(x) == Symbol
         @test_broken keytype(x) == Vararg{Symbol}
     end
-    @test "getting subtries and values" begin
+    @testset "getting subtries and values" begin
         @test x[:a] isa SubTrie
         @test x[:a].path == (:a,)  ## method?
         @test get(x[:a])=="a"
@@ -17,7 +17,7 @@ using Test
         @test get(x[:a,:b,:d])=="y"
         @test get(x[:a][:b,:d])=="y"
     end
-    @test "setting values" begin
+    @testset "setting values" begin
         x[:z]="added"
         @test get(x[:z])=="added"
         x[:z,:n]="n"
@@ -28,5 +28,14 @@ using Test
             x[:z]="changed"
             @test get(x[:z,:n])=="m"
         end
+    end
+    @testset "populating path" begin
+        x=Trie{Int,Int}()
+        leaf = subtrie!(x, 1,2,3,4,5) do x
+            x[end]+1
+        end
+        @test get(leaf)==6
+        @test get(x[1])==2
+        @test get(x[1,2])==3
     end
 end
