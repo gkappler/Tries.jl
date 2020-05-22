@@ -15,13 +15,21 @@ This is an associative data structure with keys of type `NTuple{N,K} where N` an
 
 ```@repl
 using Tries
-x=Trie((:a,)=>"a", (:a,:b)=>"c", (:a,:c,:d)=>"z", (:a,:b,:d)=>1)
+x=Trie((:a,)=>"a", 
+       (:a,:b)=>"c", 
+	   (:a,:c,:d)=>"z", 
+	   (:a,:b,:d)=>1)
 eltype(x)
 x[:a,:b]
 x[:a,:b].path
+get(x[:a,:b])
+get(x[:a][:b,:d])
+
+# 
 get(x,[:a,:b])
+
 x[:z]="added"
-get(x[:z])=="added"
+get(x[:z])
 x[:z,:n]="n"
 x[:z]
 x[:z,:n]="m"
