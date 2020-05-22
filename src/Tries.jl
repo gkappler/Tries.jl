@@ -207,7 +207,7 @@ Returns `subtrie!(x,k).value`.
 See also [`subtrie!`](@ref)
 """
 Base.get!(x::Trie{K,T},k) where {K,T} =
-    subtrie!(x, k).value
+    get(subtrie!(x, k...))
 
 
 """
@@ -228,7 +228,7 @@ Returns `subtrie!(x,k).value`.
 See also [`subtrie!`](@ref)
 """
 Base.get!(f::Function, x::Trie{K,T}, k) where {K,T} =
-    get(subtrie!(path -> f(), x, k...))
+    get(subtrie!(f, x, k...))
 
 """
     Base.isempty(x::Trie)
@@ -254,7 +254,7 @@ export subtrie!
 Return a subtree at `path`.
 Nodes missing in `x` along path are created and populated with values `missing`.
 """
-subtrie!(x::Trie,path...) =
+subtrie!(x::Trie{K,V},path::K...) where {K,V} =
     subtrie!((path)->missing, x,path...)
 
 """
@@ -280,7 +280,7 @@ Trie{Int64,Int64} => 0
 ```
 
 """
-function subtrie!(f::Function,x::Trie{K,T},path...) where {K,T}
+function subtrie!(f::Function,x::Trie{K,T},path::K...) where {K,T}
     isempty(path) && return SubTrie(tuple(),x)
     x_::Trie{K,T} = x
     for i in 1:(lastindex(path)-1)
@@ -322,7 +322,7 @@ Stacktrace:
 
 ```
 """
-function subtrie(x::Trie{K,T},path::Vararg) where {K,T}
+function subtrie(x::Trie{K,T},path::K...) where {K,T}
     x_::Trie{K,T} = x
     for (i,k) in enumerate(path)
         !(haskey(x_.nodes,k)) && throw(KeyError(path[i:end]))
@@ -373,7 +373,7 @@ Trie{Symbol,String}
 
 See also [`subtrie!`](@ref)
 """
-function Base.setindex!(x::Trie{K,T}, v::T, path...) where {K,T}
+function Base.setindex!(x::Trie{K,T}, v::T, path::K...) where {K,T}
     x_=subtrie!(x,path[1:end-1]...)
     leaf=subtrie!(x_,path[end])
     x_.value.nodes[path[end]] = Trie{K,T}(v,leaf.value.nodes)
@@ -388,7 +388,7 @@ Get `SubTrie` at `path`.
 
 See also [`SubTrie`](@ref).
 """
-function Base.getindex(x::Trie{K,T}, path::Vararg) where {K,T}
+function Base.getindex(x::Trie{K,T}, path::K...) where {K,T}
     subtrie(x,path...)
 end
 
@@ -399,18 +399,9 @@ Get `SubTrie` at `(x.path...,path...)`.
 
 See also [`SubTrie`](@ref).
 """
-function Base.getindex(x::SubTrie, path::Vararg)
+function Base.getindex(x::SubTrie{K,V}, path::K...) where {K,V}
     SubTrie(tuple(x.path...,path...),subtrie(x,path...))
 end
-
-
-
-AbstractTrees.children(x::Pair{<:Any,<:Trie}) =
-    pairs(x.second.nodes)
-
-Base.getindex(x::Pair{<:Any,<:Trie{K,V}},a::K) where {K,V} =
-    x.second[a]
-
 
 """
     Base.pairs(x::Trie{K,V}) where {K,V}
@@ -420,13 +411,12 @@ Generator returning `path => value` pairs.
 
 See also [`AbstractTrees.PreOrderDFS`](https://juliacollections.github.io/AbstractTrees.jl/stable/api/#AbstractTrees.PreOrderDFS)
 """
-function Base.pairs(x::Trie{K,V}) where {K,V}
-    ( x.path => x.value
-      for x in PreOrderDFS(SubTrie(tuple(),x)) )
-end
+Base.pairs(x::Trie) =
+    pairs(SubTrie(tuple(),x))
 
-function Base.pairs(x::SubTrie)
-    ( x.path => x.value for x in PreOrderDFS(x) )
+function Base.pairs(x::SubTrie{K,V}) where {K,V}
+    ( Pair{Tuple{Vararg{K,N} where N},Union{Missing,V}}(x.path, get(x))
+      for x in PreOrderDFS(x) )
 end
 
 
@@ -438,8 +428,7 @@ Generator returning `path`s as `first` fields from `pairs(x)`.
 See also [`pairs`](@ref)
 """
 Base.keys(x::Union{Trie,SubTrie}) =
-    (  kv.first for kv in pairs(x)
-       if get(kv.second) !== missing )
+    (  kv.first for kv in pairs(x) )
 
 
 """
@@ -450,23 +439,6 @@ Generator returning `value`s as `second` fields from `pairs(x)`.
 See also [`pairs`](@ref)
 """
 Base.values(x::Union{Trie,SubTrie}) =
-    ( get(kv.second) for kv in pairs(x)
-      if get(kv.second) !== missing )
-
-## duplicated code!
-function subtrie_key(x::Trie{Pair{Symbol, Any}}, key::Symbol)
-    for (k,v) in x.nodes
-        k.first==key && return v
-    end
-    error("key $key not found")
-end
-function subtrie_value(x::Trie{Pair{Symbol, Any}}, key::Symbol)
-    for (k,v) in x.nodes
-        k.second==key && return v
-    end
-    error("key $key not found")
-end
-
-
+    ( kv.second for kv in pairs(x) )
 
 end # module

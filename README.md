@@ -4,8 +4,8 @@
 [![Build Status](https://travis-ci.org/gkappler/Tries.jl.svg?branch=master)](https://travis-ci.com/github/gkappler/Tries.jl)
 [![Codecov](https://codecov.io/gh/gkappler/Tries.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/gkappler/Tries.jl)
 
-A [Trie](https://en.wikipedia.org/wiki/Trie) data structure implemented on a `Dict` backend.
-The `Trie` generalizes [DataStructures.Trie](https://juliacollections.github.io/DataStructures.jl/latest/trie/) from `AbstractString` keys to arbitrary `NTuple{N,K} where N` types.
+[Trie](https://en.wikipedia.org/wiki/Trie) is a small package providing a tree-like data structure implemented on a `Dict` backend and using [AbstractTrees](https://github.com/JuliaCollections/AbstractTrees.jl) for printing and traversal.
+`Trie` generalizes [DataStructures.Trie](https://juliacollections.github.io/DataStructures.jl/latest/trie/) from `AbstractString` keys to arbitrary `NTuple{N,K} where N` key types.
 
 Some design decisions for a `trie::Trie{K,V}` regarding `keytype` and `getindex` might change in future versions based on discussions with the community.
 :
