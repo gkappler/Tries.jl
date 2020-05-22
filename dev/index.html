@@ -3,18 +3,18 @@
 
 julia&gt; x=Trie((:a,)=&gt;&quot;a&quot;, (:a,:b)=&gt;&quot;c&quot;, (:a,:c,:d)=&gt;&quot;z&quot;, (:a,:b,:d)=&gt;1)
 Trie{Symbol,Any}
-└─ a =&gt; a
-   ├─ b =&gt; c
-   │  └─ d =&gt; 1
-   └─ c
-      └─ d =&gt; z
+└─ :a =&gt; &quot;a&quot;
+   ├─ :b =&gt; &quot;c&quot;
+   │  └─ :d =&gt; 1
+   └─ :c
+      └─ :d =&gt; &quot;z&quot;
 
 julia&gt; eltype(x)
 Any
 
 julia&gt; x[:a,:b]
-a, b =&gt; c
-└─ d =&gt; 1
+SubTrie{Symbol,Any} @ :a, :b =&gt; &quot;c&quot;
+└─ :d =&gt; 1
 
 julia&gt; x[:a,:b].path
 (:a, :b)
@@ -32,25 +32,25 @@ julia&gt; x[:z,:n]=&quot;n&quot;
 &quot;n&quot;
 
 julia&gt; x[:z]
-z =&gt; added
-└─ n =&gt; n
+SubTrie{Symbol,Any} @ :z =&gt; &quot;added&quot;
+└─ :n =&gt; &quot;n&quot;
 
 julia&gt; x[:z,:n]=&quot;m&quot;
 &quot;m&quot;
 
 julia&gt; x[:z]
-z =&gt; added
-└─ n =&gt; m
+SubTrie{Symbol,Any} @ :z =&gt; &quot;added&quot;
+└─ :n =&gt; &quot;m&quot;
 
 julia&gt; x
 Trie{Symbol,Any}
-├─ a =&gt; a
-│  ├─ b =&gt; c
-│  │  └─ d =&gt; 1
-│  └─ c
-│     └─ d =&gt; z
-└─ z =&gt; added
-   └─ n =&gt; m</code></pre><pre><code class="language-julia-repl">julia&gt; using Tries
+├─ :a =&gt; &quot;a&quot;
+│  ├─ :b =&gt; &quot;c&quot;
+│  │  └─ :d =&gt; 1
+│  └─ :c
+│     └─ :d =&gt; &quot;z&quot;
+└─ :z =&gt; &quot;added&quot;
+   └─ :n =&gt; &quot;m&quot;</code></pre><pre><code class="language-julia-repl">julia&gt; using Tries
 
 julia&gt; x=Trie{Int,Int}(0)
 Trie{Int64,Int64} =&gt; 0
@@ -58,7 +58,7 @@ Trie{Int64,Int64} =&gt; 0
 julia&gt; subtrie!(x, 1,2,3,4,5) do x
           x[end]+1
        end
-Trie{Int64,Int64} =&gt; 6
+SubTrie{Int64,Int64} @ 1, 2, 3, 4, 5 =&gt; 6
 
 julia&gt; x
 Trie{Int64,Int64} =&gt; 0
@@ -76,4 +76,4 @@ julia&gt; collect(keys(x))
  (1, 2)
  (1, 2, 3)
  (1, 2, 3, 4)
- (1, 2, 3, 4, 5)</code></pre><h2 id="Library-Outline-1"><a class="docs-heading-anchor" href="#Library-Outline-1">Library Outline</a><a class="docs-heading-anchor-permalink" href="#Library-Outline-1" title="Permalink"></a></h2><ul><li><a href="lib/public/#Public-Documentation-1">Public Documentation</a></li><li><a href="lib/public/#Public-Interface-1">Public Interface</a></li></ul><ul><li><a href="lib/public/#Tries"><code>Tries</code></a></li><li><a href="lib/public/#Tries.SubTrie"><code>Tries.SubTrie</code></a></li><li><a href="lib/public/#Tries.Trie"><code>Tries.Trie</code></a></li><li><a href="lib/public/#Base.eltype"><code>Base.eltype</code></a></li><li><a href="lib/public/#Base.get"><code>Base.get</code></a></li><li><a href="lib/public/#Base.get!"><code>Base.get!</code></a></li><li><a href="lib/public/#Base.getindex"><code>Base.getindex</code></a></li><li><a href="lib/public/#Base.haskey"><code>Base.haskey</code></a></li><li><a href="lib/public/#Base.isempty"><code>Base.isempty</code></a></li><li><a href="lib/public/#Base.keys"><code>Base.keys</code></a></li><li><a href="lib/public/#Base.keytype"><code>Base.keytype</code></a></li><li><a href="lib/public/#Base.pairs"><code>Base.pairs</code></a></li><li><a href="lib/public/#Base.setindex!"><code>Base.setindex!</code></a></li><li><a href="lib/public/#Base.show"><code>Base.show</code></a></li><li><a href="lib/public/#Base.values"><code>Base.values</code></a></li><li><a href="lib/public/#Tries.subtrie"><code>Tries.subtrie</code></a></li><li><a href="lib/public/#Tries.subtrie!"><code>Tries.subtrie!</code></a></li></ul></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="lib/public/">Public »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Thursday 21 May 2020 12:57">Thursday 21 May 2020</span>. Using Julia version 1.3.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+ (1, 2, 3, 4, 5)</code></pre><h2 id="Library-Outline-1"><a class="docs-heading-anchor" href="#Library-Outline-1">Library Outline</a><a class="docs-heading-anchor-permalink" href="#Library-Outline-1" title="Permalink"></a></h2><ul><li><a href="lib/public/#Public-Documentation-1">Public Documentation</a></li><li><a href="lib/public/#Public-Interface-1">Public Interface</a></li></ul><ul><li><a href="lib/public/#Tries"><code>Tries</code></a></li><li><a href="lib/public/#Tries.SubTrie"><code>Tries.SubTrie</code></a></li><li><a href="lib/public/#Tries.Trie"><code>Tries.Trie</code></a></li><li><a href="lib/public/#Base.eltype"><code>Base.eltype</code></a></li><li><a href="lib/public/#Base.get"><code>Base.get</code></a></li><li><a href="lib/public/#Base.get!"><code>Base.get!</code></a></li><li><a href="lib/public/#Base.getindex"><code>Base.getindex</code></a></li><li><a href="lib/public/#Base.haskey"><code>Base.haskey</code></a></li><li><a href="lib/public/#Base.isempty"><code>Base.isempty</code></a></li><li><a href="lib/public/#Base.keys"><code>Base.keys</code></a></li><li><a href="lib/public/#Base.keytype"><code>Base.keytype</code></a></li><li><a href="lib/public/#Base.pairs"><code>Base.pairs</code></a></li><li><a href="lib/public/#Base.setindex!"><code>Base.setindex!</code></a></li><li><a href="lib/public/#Base.show"><code>Base.show</code></a></li><li><a href="lib/public/#Base.values"><code>Base.values</code></a></li><li><a href="lib/public/#Tries.subtrie"><code>Tries.subtrie</code></a></li><li><a href="lib/public/#Tries.subtrie!"><code>Tries.subtrie!</code></a></li></ul></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="lib/public/">Public »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Friday 22 May 2020 10:29">Friday 22 May 2020</span>. Using Julia version 1.3.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
