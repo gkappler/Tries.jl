@@ -1,13 +1,13 @@
 name = "Tries"
 uuid = "666c268a-d78f-417b-b45a-09e10b365109"
 authors = ["Gregor Kappler"]
-version = "0.1.1"
+version = "0.1.2"
 
 [deps]
 AbstractTrees = "1520ce14-60c1-5f80-bbc7-55ef81b5835c"
 
 [compat]
-AbstractTrees = ">= 0.2.1"
+AbstractTrees = "0.2.1, 0.3.3"
 julia = "1"
 
 [extras]
