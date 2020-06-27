@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Home · Tries.jl</title><link rel="canonical" href="https://gkappler.github.io/Tries.jl/"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">Tries.jl</span></div><form class="docs-search" action="search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Home</a><ul class="internal"><li><a class="tocitem" href="#Package-Features-1"><span>Package Features</span></a></li><li><a class="tocitem" href="#Using-Tries-1"><span>Using Tries</span></a></li><li><a class="tocitem" href="#Library-Outline-1"><span>Library Outline</span></a></li></ul></li><li><span class="tocitem">Library</span><ul><li><a class="tocitem" href="lib/public/">Public</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Home</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Home</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/gkappler/Tries.jl/blob/master/docs/src/index.md#L" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Tries.jl-Documentation-1"><a class="docs-heading-anchor" href="#Tries.jl-Documentation-1">Tries.jl Documentation</a><a class="docs-heading-anchor-permalink" href="#Tries.jl-Documentation-1" title="Permalink"></a></h1><p>Implemented of a Trie data structure.   This is an associative data structure with keys of type <code>NTuple{N,K} where N</code> and values of type <code>V</code>.</p><h2 id="Package-Features-1"><a class="docs-heading-anchor" href="#Package-Features-1">Package Features</a><a class="docs-heading-anchor-permalink" href="#Package-Features-1" title="Permalink"></a></h2><ul><li>General trie data structure building on <code>Dict</code>.</li><li>Generalizes <a href="https://juliacollections.github.io/DataStructures.jl/latest/trie/">DataStructures Trie</a> from <code>AbstractString</code> to arbitrary key types.</li></ul><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Future versions might switch backend to Andy Ferris <a href="https://github.com/andyferris/Dictionaries.jl">Dictionaries.jl</a>.</p></div></div><h2 id="Using-Tries-1"><a class="docs-heading-anchor" href="#Using-Tries-1">Using Tries</a><a class="docs-heading-anchor-permalink" href="#Using-Tries-1" title="Permalink"></a></h2><pre><code class="language-julia-repl">julia&gt; using Tries
+
+julia&gt; x=Trie((:a,)=&gt;&quot;a&quot;,
+              (:a,:b)=&gt;&quot;c&quot;,
+       	   (:a,:c,:d)=&gt;&quot;z&quot;,
+       	   (:a,:b,:d)=&gt;1)
+Trie{Symbol,Any}
+└─ :a =&gt; &quot;a&quot;
+   ├─ :b =&gt; &quot;c&quot;
+   │  └─ :d =&gt; 1
+   └─ :c
+      └─ :d =&gt; &quot;z&quot;
+
+julia&gt; eltype(x)
+Any
+
+julia&gt; x[:a,:b]
+SubTrie{Symbol,Any} @ :a, :b =&gt; &quot;c&quot;
+└─ :d =&gt; 1
+
+julia&gt; x[:a,:b].path
+(:a, :b)
+
+julia&gt; get(x[:a,:b])
+&quot;c&quot;
+
+julia&gt; get(x[:a][:b,:d])
+1
+
+julia&gt; #
+       get(x,[:a,:b])
+&quot;c&quot;
+
+julia&gt; x[:z]=&quot;added&quot;
+&quot;added&quot;
+
+julia&gt; get(x[:z])
+&quot;added&quot;
+
+julia&gt; x[:z,:n]=&quot;n&quot;
+&quot;n&quot;
+
+julia&gt; x[:z]
+SubTrie{Symbol,Any} @ :z =&gt; &quot;added&quot;
+└─ :n =&gt; &quot;n&quot;
+
+julia&gt; x[:z,:n]=&quot;m&quot;
+&quot;m&quot;
+
+julia&gt; x[:z]
+SubTrie{Symbol,Any} @ :z =&gt; &quot;added&quot;
+└─ :n =&gt; &quot;m&quot;
+
+julia&gt; x
+Trie{Symbol,Any}
+├─ :a =&gt; &quot;a&quot;
+│  ├─ :b =&gt; &quot;c&quot;
+│  │  └─ :d =&gt; 1
+│  └─ :c
+│     └─ :d =&gt; &quot;z&quot;
+└─ :z =&gt; &quot;added&quot;
+   └─ :n =&gt; &quot;m&quot;</code></pre><pre><code class="language-julia-repl">julia&gt; using Tries
+
+julia&gt; x=Trie{Int,Int}(0)
+Trie{Int64,Int64} =&gt; 0
+
+julia&gt; subtrie!(x, 1,2,3,4,5) do x
+          x[end]+1
+       end
+SubTrie{Int64,Int64} @ 1, 2, 3, 4, 5 =&gt; 6
+
+julia&gt; x
+Trie{Int64,Int64} =&gt; 0
+└─ 1 =&gt; 2
+   └─ 2 =&gt; 3
+      └─ 3 =&gt; 4
+         └─ 4 =&gt; 5
+            └─ 5 =&gt; 6
+               ⋮
+
+julia&gt; collect(keys(x))
+6-element Array{Tuple{Vararg{Int64,N} where N},1}:
+ ()
+ (1,)
+ (1, 2)
+ (1, 2, 3)
+ (1, 2, 3, 4)
+ (1, 2, 3, 4, 5)</code></pre><h2 id="Library-Outline-1"><a class="docs-heading-anchor" href="#Library-Outline-1">Library Outline</a><a class="docs-heading-anchor-permalink" href="#Library-Outline-1" title="Permalink"></a></h2><ul><li><a href="lib/public/#Public-Interface-1">Public Interface</a></li></ul><ul><li><a href="lib/public/#Tries"><code>Tries</code></a></li><li><a href="lib/public/#Tries.SubTrie"><code>Tries.SubTrie</code></a></li><li><a href="lib/public/#Tries.Trie"><code>Tries.Trie</code></a></li><li><a href="lib/public/#Base.eltype"><code>Base.eltype</code></a></li><li><a href="lib/public/#Base.get"><code>Base.get</code></a></li><li><a href="lib/public/#Base.get!"><code>Base.get!</code></a></li><li><a href="lib/public/#Base.getindex"><code>Base.getindex</code></a></li><li><a href="lib/public/#Base.haskey"><code>Base.haskey</code></a></li><li><a href="lib/public/#Base.isempty"><code>Base.isempty</code></a></li><li><a href="lib/public/#Base.keys"><code>Base.keys</code></a></li><li><a href="lib/public/#Base.keytype"><code>Base.keytype</code></a></li><li><a href="lib/public/#Base.pairs"><code>Base.pairs</code></a></li><li><a href="lib/public/#Base.setindex!"><code>Base.setindex!</code></a></li><li><a href="lib/public/#Base.show"><code>Base.show</code></a></li><li><a href="lib/public/#Base.values"><code>Base.values</code></a></li><li><a href="lib/public/#Tries.subtrie"><code>Tries.subtrie</code></a></li><li><a href="lib/public/#Tries.subtrie!"><code>Tries.subtrie!</code></a></li></ul></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="lib/public/">Public »</a></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Saturday 27 June 2020 11:04">Saturday 27 June 2020</span>. Using Julia version 1.3.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
