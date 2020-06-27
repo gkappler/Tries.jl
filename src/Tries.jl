@@ -328,13 +328,15 @@ SubTrie{Symbol,String} @ :a, :b => "c"
 julia> subtrie(a, :a, :d, :b)
 ERROR: KeyError: key (:d, :b) not found
 Stacktrace:
- [1] subtrie(::Trie{Symbol,String}, ::Symbol, ::Vararg{Symbol,N} where N) at /home/gregor/dev/julia/Tries/src/Tries.jl:328
- [2] top-level scope at /home/gregor/dev/julia/Tries/docs/make.jl:12
+ [1] (::Tries.var"#41#42")(::Tuple{Symbol,Symbol,Symbol}, ::Int64) at /home/gregor/dev/julia/Tries/src/Tries.jl:334
+ [2] subtrie(::Tries.var"#41#42", ::Trie{Symbol,String}, ::Symbol, ::Vararg{Symbol,N} where N) at /home/gregor/dev/julia/Tries/src/Tries.jl:386
+ [3] subtrie(::Trie{Symbol,String}, ::Symbol, ::Symbol, ::Vararg{Symbol,N} where N) at /home/gregor/dev/julia/Tries/src/Tries.jl:334
+ [4] top-level scope at REPL[12]:1
 
 ```
 """
 function subtrie(x::AbstractTrie,path...)
-    subtrie((path,i)->KeyError(path[i:end]),x,path...)
+    subtrie((path,i)->throw(KeyError(path[i:end])),x,path...)
 end
 
 """
@@ -363,7 +365,8 @@ end
 """
     subtrie(notfound::Function,x::Trie{K,T},path...)
 
-Return a subtree at `path`, or `notfound()`, if `path` does not exist in `x`.
+Return a subtree at `path`, or `notfound(path,error_index)`, if `path` does not exist in `x`
+(default `(path,i)->throw(KeyError(path[i:end]))`).
 Does not modify `x`.
 
 ```jldoctest
@@ -375,7 +378,10 @@ Trie{Symbol,String}
    └─ :c
       └─ :d => "z"
 
-julia> subtrie(path -> nothing, a, :a, :d)
+
+julia> subtrie((x...) -> x, a, :a, :d)
+((:a, :d), 2)
+
 
 ```
 """

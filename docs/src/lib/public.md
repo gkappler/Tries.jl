@@ -1,9 +1,5 @@
-# Public Documentation
-
-Documentation for `Tries.jl`'s public interface.
-
-
 # Public Interface
+Documentation for `Tries.jl`'s public interface.
 
 ```@docs
 Tries
