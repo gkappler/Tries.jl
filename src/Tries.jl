@@ -333,8 +333,54 @@ Stacktrace:
 
 ```
 """
-function subtrie(x::Trie{K,T},path::K...) where {K,T}
-    x_::Trie{K,T} = x
+function subtrie(x::AbstractTrie,path...)
+    subtrie((path,i)->KeyError(path[i:end]),x,path...)
+end
+
+"""
+    subtrie(::Nothing,x::Trie{K,T},path...)
+
+Return a subtree at `path`, or `nothing`, if `path` does not exist in `x`.
+Does not modify `x`.
+
+```jldoctest
+julia> a = Trie((:a,)=>"a", (:a,:b)=>"c", (:a,:c,:d)=>"z", (:a,:b,:d)=>"y")
+Trie{Symbol,String}
+└─ :a => "a"
+   ├─ :b => "c"
+   │  └─ :d => "y"
+   └─ :c
+      └─ :d => "z"
+
+julia> subtrie(nothing, a, :a, :d)
+
+```
+"""
+function subtrie(::Nothing,x::AbstractTrie{K,T},path::K...) where {K,T}
+    subtrie((p,i)->nothing,x,path...)
+end
+
+"""
+    subtrie(notfound::Function,x::Trie{K,T},path...)
+
+Return a subtree at `path`, or `notfound()`, if `path` does not exist in `x`.
+Does not modify `x`.
+
+```jldoctest
+julia> a = Trie((:a,)=>"a", (:a,:b)=>"c", (:a,:c,:d)=>"z", (:a,:b,:d)=>"y")
+Trie{Symbol,String}
+└─ :a => "a"
+   ├─ :b => "c"
+   │  └─ :d => "y"
+   └─ :c
+      └─ :d => "z"
+
+julia> subtrie(path -> nothing, a, :a, :d)
+
+```
+"""
+function subtrie(f::Function,x::AbstractTrie{K,T},path::K...) where {K,T}
+    x_ = x
     for (i,k) in enumerate(path)
         !(haskey(nodes(x_),k)) && return f(path,i)
         # &&  @warn "no key $k" collect(keys(x_.nodes)) # k haskey(x_.nodes,k) x_.nodes
