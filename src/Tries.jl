@@ -17,6 +17,12 @@ struct Trie{K,T}
 end
 
 """
+    nodes(x::Union{Trie,SubTrie})
+
+Getter for node dictionary.
+"""
+nodes(x::Trie) = x.nodes
+"""
 A Trie with a path.
 """
 struct SubTrie{K,T}
@@ -27,6 +33,7 @@ struct SubTrie{K,T}
     SubTrie(path::NTuple{N,K} where N, st::SubTrie{K,V}) where {K,V} =
         new{K,V}((path..., st.path...), st.value)
 end
+nodes(x::SubTrie) = x.value.nodes
 
 subtrie(x::SubTrie, a...) =
     SubTrie(x.path,subtrie(x.value,a...))
@@ -286,11 +293,11 @@ function subtrie!(f::Function,x::Trie{K,T},path::K...) where {K,T}
     for i in 1:(lastindex(path)-1)
         k = path[i]
         x_ = get!(() -> Trie{K,T}(f(path[1:i])),
-                  x_.nodes, k)
+                  nodes(x_), k)
     end
     ##if length(path) >= 1
     x_ = get!(() -> Trie{K,T}(f(path)),
-              x_.nodes, path[end])
+              nodes(x_), path[end])
     ##end
     SubTrie(path, x_)
 end
@@ -325,9 +332,9 @@ Stacktrace:
 function subtrie(x::Trie{K,T},path::K...) where {K,T}
     x_::Trie{K,T} = x
     for (i,k) in enumerate(path)
-        !(haskey(x_.nodes,k)) && throw(KeyError(path[i:end]))
+        !(haskey(nodes(x_),k)) && return f(path,i)
         # &&  @warn "no key $k" collect(keys(x_.nodes)) # k haskey(x_.nodes,k) x_.nodes
-        x_ = x_.nodes[k]
+        x_ = nodes(x_)[k]
     end
     SubTrie(path, x_)
 end
