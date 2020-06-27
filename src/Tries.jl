@@ -10,14 +10,14 @@ import AbstractTrees: children, printnode, PreOrderDFS, print_tree
 ##using VectorDicts
 
 export Trie, SubTrie, subtrie
-
-struct Trie{K,T}
+abstract type AbstractTrie{K,T} end
+struct Trie{K,T} <: AbstractTrie{K,T}
     value::Union{Missing,T}
     nodes::Dict{K,Trie{K,T}}
 end
 
 """
-    nodes(x::Union{Trie,SubTrie})
+    nodes(x::AbstractTrie{K,T})
 
 Getter for node dictionary.
 """
@@ -25,7 +25,7 @@ nodes(x::Trie) = x.nodes
 """
 A Trie with a path.
 """
-struct SubTrie{K,T}
+struct SubTrie{K,T} <: AbstractTrie{K,T}
     path::NTuple{N,K} where N
     value::Trie{K,T}
     SubTrie(path::NTuple{N,K} where N, t::Trie{K,V}) where {K,V} =
@@ -190,7 +190,7 @@ Returns `K`.
 """
 Base.keytype(::Type{Trie{K,V}}) where {K,V} = K
 Base.keytype(::Type{SubTrie{K,V}}) where {K,V} = K
-Base.keytype(x::Union{Trie,SubTrie}) = keytype(typeof(x))
+Base.keytype(x::AbstractTrie) = keytype(typeof(x))
 
 
 """
@@ -203,7 +203,7 @@ Returns `V`.
 """
 Base.eltype(::Type{Trie{K,V}}) where {K,V} = V
 Base.eltype(::Type{SubTrie{K,V}}) where {K,V} = V
-Base.eltype(x::Union{Trie,SubTrie}) = eltype(typeof(x))
+Base.eltype(x::AbstractTrie) = eltype(typeof(x))
 
 
 """
@@ -428,13 +428,13 @@ end
 
 
 """
-    Base.keys(x::Union{Trie,SubTrie})
+    Base.keys(x::AbstractTrie)
 
 Generator returning `path`s as `first` fields from `pairs(x)`.
 
 See also [`pairs`](@ref)
 """
-Base.keys(x::Union{Trie,SubTrie}) =
+Base.keys(x::AbstractTrie) =
     (  kv.first for kv in pairs(x) )
 
 
@@ -445,7 +445,7 @@ Generator returning `value`s as `second` fields from `pairs(x)`.
 
 See also [`pairs`](@ref)
 """
-Base.values(x::Union{Trie,SubTrie}) =
+Base.values(x::AbstractTrie) =
     ( kv.second for kv in pairs(x) )
 
 end # module
