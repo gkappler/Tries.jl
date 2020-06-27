@@ -205,6 +205,10 @@ Base.eltype(::Type{Trie{K,V}}) where {K,V} = V
 Base.eltype(::Type{SubTrie{K,V}}) where {K,V} = V
 Base.eltype(x::AbstractTrie) = eltype(typeof(x))
 
+Base.valtype(::Type{Trie{K,V}}) where {K,V} = V
+Base.valtype(::Type{SubTrie{K,V}}) where {K,V} = V
+Base.valtype(x::AbstractTrie) = valtype(typeof(x))
+
 
 """
     Base.get!(x::Trie,k)
