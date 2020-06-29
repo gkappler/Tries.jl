@@ -9,8 +9,26 @@ import AbstractTrees
 import AbstractTrees: children, printnode, PreOrderDFS, print_tree
 ##using VectorDicts
 
-export Trie, SubTrie, subtrie
+export AbstractTrie, Trie, SubTrie, nodes, subtrie
+
 abstract type AbstractTrie{K,T} end
+
+"""
+    Base.length(x::Tries.AbstractTrie)
+
+Cumulative count of all sub-nodes.
+"""
+Base.length(x::AbstractTrie) =
+    isempty(nodes(x)) ? 0 : (length(nodes(x)) + (sum)(length.(values(nodes(x)))))::Int
+
+"""
+    Base.iterate(x::Tries.AbstractTrie, a...)
+
+`iterate(pairs(x), a...)`.
+"""
+Base.iterate(x::AbstractTrie, a...) =
+    iterate(pairs(x), a...)
+
 struct Trie{K,T} <: AbstractTrie{K,T}
     value::Union{Missing,T}
     nodes::Dict{K,Trie{K,T}}
