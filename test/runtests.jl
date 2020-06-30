@@ -4,13 +4,21 @@ using Test
 @testset "Tries.jl" begin
     x=Trie((:a,)=>"a", (:a,:b)=>"c", (:a,:c,:d)=>"z", (:a,:b,:d)=>1)
     x=Trie((:a,)=>"a", (:a,:b)=>"c", (:a,:c,:d)=>"z", (:a,:b,:d)=>"y")
+    @test length(x) == 6
+    @test [ n for n in x if n.second!==missing ] == [ (:a,)=>"a", (:a,:b)=>"c", (:a,:b,:d)=>"y", (:a,:c,:d)=>"z" ]
     @test isempty(x) == false
     @test haskey(x,(:a,)) == true
     @testset "eltype, keytype" begin
-        @test eltype(x) == String
-        @test eltype(typeof(x)) == String
-        @test eltype(x[:a]) == String
-        @test eltype(typeof(x[:a])) == String
+        @test eltype(x) == Pair{Tuple{Vararg{Symbol,N} where N},Union{Missing,String}}
+        @test eltype(typeof(x)) == Pair{Tuple{Vararg{Symbol,N} where N},Union{Missing,String}}
+        @test eltype(x[:a]) == Pair{Tuple{Vararg{Symbol,N} where N},Union{Missing,String}}
+        @test eltype(typeof(x[:a])) == Pair{Tuple{Vararg{Symbol,N} where N},Union{Missing,String}}
+
+        @test valtype(x) == String
+        @test valtype(typeof(x)) == String
+        @test valtype(x[:a]) == String
+        @test valtype(typeof(x[:a])) == String
+
         @test keytype(x) == Symbol
         @test keytype(typeof(x)) == Symbol
         @test keytype(x[:a]) == Symbol
@@ -33,7 +41,9 @@ using Test
 
     @testset "Generator constructor" begin
         x=Trie(kv for kv in ([:a]=>"a", [:a,:b]=>"c", [:a,:c,:d]=>"z", [:a,:b,:d]=>"y"))
-        show(x)
+        @test_throws KeyError subtrie(x,:z,:y)
+        @test subtrie((p,i)->1,x,:z,:y)==1
+        @test subtrie(nothing,x,:z,:y)===nothing
         @test get(x[:a][:b,:d])=="y"
         subtrie!(x,:z,:y)
         @test get(x[:z][:y])===missing

@@ -4,7 +4,7 @@ This is an associative data structure with keys of type `NTuple{N,K} where N` an
 """
 module Tries
 
-import Base: get!, show, get, isempty, haskey, setindex!, getindex, pairs, keys, values, keytype, eltype
+import Base: get!, show, get, isempty, haskey, setindex!, getindex, pairs, keys, values, keytype, eltype, valtype
 import AbstractTrees
 import AbstractTrees: children, printnode, PreOrderDFS, print_tree
 ##using VectorDicts
@@ -16,10 +16,13 @@ abstract type AbstractTrie{K,T} end
 """
     Base.length(x::Tries.AbstractTrie)
 
-Cumulative count of all sub-nodes.
+Cumulative count of all nodes.
 """
 Base.length(x::AbstractTrie) =
-    isempty(nodes(x)) ? 0 : (length(nodes(x)) + (sum)(length.(values(nodes(x)))))::Int
+    1+_length(x)
+
+_length(x::AbstractTrie) =
+    isempty(nodes(x)) ? 0 : (0+length(nodes(x)) + (sum)(_length.(values(nodes(x)))))::Int
 
 """
     Base.iterate(x::Tries.AbstractTrie, a...)
@@ -142,7 +145,7 @@ Trie(values::Base.Generator) = Trie(values...)
     Base.get(x::Trie)
     Base.get(x::SubTrie)
 
-Return `value::Union{Missing,eltype(x)}` of `x`.
+Return `value::Union{Missing,valtype(x)}` of `x`.
 """
 function Base.get(x::Trie)
     x.value
@@ -158,12 +161,12 @@ Base.get(x::SubTrie) = get(x.value)
 Display `x` with `AbstractTrees.print_tree`.
 """
 function Base.show(io::IO, x::Trie)
-    print(io,"Trie{$(keytype(x)),$(eltype(x))}") ## error("should print key")
+    print(io,"Trie{$(keytype(x)),$(valtype(x))}") ## error("should print key")
     print_tree(io,x)
 end
 
 function Base.show(io::IO, x::SubTrie)
-    print(io,"SubTrie{$(keytype(x)),$(eltype(x))} @ ") ## error("should print key")
+    print(io,"SubTrie{$(keytype(x)),$(valtype(x))} @ ") ## error("should print key")
     if length(x.path)>1
         for p in x.path[1:end-1]
             show(io,p)
@@ -206,25 +209,27 @@ Returns `K`.
 !!! warning
     please review: should this return `NTuple{N,K} where N`?
 """
-Base.keytype(::Type{Trie{K,V}}) where {K,V} = K
-Base.keytype(::Type{SubTrie{K,V}}) where {K,V} = K
+Base.keytype(::Type{<:AbstractTrie{K,V}}) where {K,V} = K
 Base.keytype(x::AbstractTrie) = keytype(typeof(x))
 
 
 """
-    Base.eltype(::Type{Trie{K,V}}) where {K,V}
-    Base.eltype(::Trie{K,V}) where {K,V}
+    Base.eltype(::Type{<:AbstractTrie{K,V}}) where {K,V}
+    Base.etype(::AbstractTrie{K,V}) where {K,V}
 
-Returns `V`.
-!!! warning
-    please review: should this return `Union{V,Missing}`?
+Returns `Pair{Tuple{Vararg{K,N} where N},Union{Missing,V}}` for `iterate` and `collect`.
 """
-Base.eltype(::Type{Trie{K,V}}) where {K,V} = V
-Base.eltype(::Type{SubTrie{K,V}}) where {K,V} = V
+Base.eltype(::Type{<:AbstractTrie{K,V}}) where {K,V} = Pair{Tuple{Vararg{K,N} where N},Union{Missing,V}}
 Base.eltype(x::AbstractTrie) = eltype(typeof(x))
 
-Base.valtype(::Type{Trie{K,V}}) where {K,V} = V
-Base.valtype(::Type{SubTrie{K,V}}) where {K,V} = V
+
+"""
+    Base.valtype(::Type{AbstractTrie{K,V}}) where {K,V}
+    Base.valtype(::AbstractTrie{K,V}) where {K,V}
+
+Returns `V`.
+"""
+Base.valtype(::Type{<:AbstractTrie{K,V}}) where {K,V} = V
 Base.valtype(x::AbstractTrie) = valtype(typeof(x))
 
 
