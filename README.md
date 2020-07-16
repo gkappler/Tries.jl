@@ -9,7 +9,7 @@
 
 Some design decisions for a `trie::Trie{K,V}` regarding `keytype` and `getindex` might change in future versions based on discussions with the community.
 :
-- `getindex(trie, ks::K...)` and `setindex!(trie, v, ks::K...)` consider `Trie` as sparse representation of a mathematical object with values`::Union{V,Missing}` referenced by any finite `N`-dimensional key `ks::NTuple{N,K} where N`. 
+- `getindex(trie, ks::K...)` and `setindex!(trie, v, ks::K...)` consider `Trie` as sparse representation of an object with values`::Union{V,Missing}` referenced by any finite `N`-dimensional key `ks::NTuple{N,K} where N`. 
 - `keytype(trie)` currently is `K`, should it be `ks::NTuple{N,K} where N`?
 - Future versions might switch backend to Andy Ferris [Dictionaries.jl](https://github.com/andyferris/Dictionaries.jl).
 Contributions, thoughts and suggestions very welcome!
@@ -104,3 +104,6 @@ julia&gt; collect(keys(x))
  (1, 2, 3, 4)
  (1, 2, 3, 4, 5)
  </code></pre>
+
+`Tries` is used in [CombinedParsers.jl](https://github.com/gkappler/CombinedParsers.jl) 
+for fast prefix tree matching (see [docs](https://gkappler.github.io/CombinedParsers.jl/dev/man/example-either-trie/)).
