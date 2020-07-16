@@ -289,19 +289,19 @@ Return a subtree at `path`.
 Nodes missing in `x` along path are created and populated with values `missing`.
 """
 subtrie!(x::Trie{K,V},path::K...) where {K,V} =
-    subtrie!((path)->missing, x,path...)
+    subtrie!((_,_)->missing, x,path...)
 
 """
     subtrie!(f::Function,x::Trie,path...)
 
 Return a subtree at `path`.
-Nodes missing in `x` along path are created and populated with values `f(partial_path)`.
+Nodes missing in `x` along path are created and populated with values `f(path, index)`.
 
 ```jldoctest
 julia> a = Trie{Int,Int}(0)
 Trie{Int64,Int64} => 0
 
-julia> subtrie!(length, a, 4,3,2,1)
+julia> subtrie!((p,i)->i, a, 4,3,2,1)
 SubTrie{Int64,Int64} @ 4, 3, 2, 1 => 4
 
 julia> a
@@ -319,11 +319,11 @@ function subtrie!(f::Function,x::Trie{K,T},path::K...) where {K,T}
     x_::Trie{K,T} = x
     for i in 1:(lastindex(path)-1)
         k = path[i]
-        x_ = get!(() -> Trie{K,T}(f(path[1:i])),
+        x_ = get!(() -> Trie{K,T}(f(path,i)),
                   nodes(x_), k)
     end
     ##if length(path) >= 1
-    x_ = get!(() -> Trie{K,T}(f(path)),
+    x_ = get!(() -> Trie{K,T}(f(path,lastindex(path))),
               nodes(x_), path[end])
     ##end
     SubTrie(path, x_)
