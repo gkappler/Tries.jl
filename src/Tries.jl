@@ -295,14 +295,20 @@ Returns `true` iif x has no nodes.
 Base.isempty(x::Trie) =
     isempty(x.nodes)
 
+export hasnextkey
+function hasnextkey(x::AbstractTrie,pathel)
+    haskey(nodes(x),pathel) && return true
+    get(x) isa AbstractTrie && return hasnextkey(get(x), pathel)
+    false
+end
 
 """
-    Base.haskey(x::Trie,path)
+    Base.haskey(x::AbstractTrie,path)
 
 Returns `true` iif x has nodes along `path`.
 """
-Base.haskey(x::Trie,path) =
-    isempty(path) || ( haskey(x.nodes,path[1]) && ( length(path)==1 || haskey(x[path[1]],path[2:end]) ) )
+Base.haskey(x::AbstractTrie, path) =
+    isempty(path) || ( hasnextkey(x,path[1]) && ( length(path)==1 || haskey(x[path[1]],path[2:end]) ) )
 
 export subtrie!
 """

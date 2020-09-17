@@ -8,6 +8,7 @@ using Test
     @test [ n for n in x if n.second!==missing ] == [ (:a,)=>"a", (:a,:b)=>"c", (:a,:b,:d)=>"y", (:a,:c,:d)=>"z" ]
     @test isempty(x) == false
     @test haskey(x,(:a,)) == true
+    @test hasnextkey(x,:a) == true
     @test collect(keys(nodes(x[:a]))) == [:b,:c]
     @testset "eltype, keytype" begin
         @test eltype(x) == Pair{Tuple{Vararg{Symbol,N} where N},Union{Missing,String}}
