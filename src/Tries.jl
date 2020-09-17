@@ -76,12 +76,12 @@ nodes(x::Trie) = x.nodes
 A Trie with a path.
 """
 struct SubTrie{K,T} <: AbstractTrie{K,T}
-    path::NTuple{N,K} where N
+    path::Tuple
     value::Trie{K,T}
-    SubTrie(path::NTuple{N,K} where N, t::Trie{K,V}) where {K,V} =
+    SubTrie(path::Tuple, t::Trie{K,V}) where {K,V} =
         new{K,V}(path, t)
-    SubTrie(path::NTuple{N,K} where N, st::SubTrie{K,V}) where {K,V} =
-        new{K,V}((path..., st.path...), st.value)
+    SubTrie(path::Tuple, st::SubTrie{K,V}) where {K,V} =
+        new{K,V}(path, st.value)
 end
 nodes(x::SubTrie) = x.value.nodes
 
@@ -179,6 +179,8 @@ Return `value::Union{Missing,valtype(x)}` of `x`.
 function Base.get(x::Trie)
     x.value
 end
+path(::Trie) = tuple()
+path(x::SubTrie) = x.path
 
 Base.get(x::SubTrie) = get(x.value)
 
@@ -189,42 +191,41 @@ Base.get(x::SubTrie) = get(x.value)
 
 Display `x` with `AbstractTrees.print_tree`.
 """
-function Base.show(io::IO, x::Trie)
-    print(io,"Trie{$(keytype(x)),$(valtype(x))}") ## error("should print key")
-    print_tree(io,x)
-end
-
-function Base.show(io::IO, x::SubTrie)
-    print(io,"SubTrie{$(keytype(x)),$(valtype(x))} @ ") ## error("should print key")
-    if length(x.path)>1
-        for p in x.path[1:end-1]
+function Base.show(io::IO, x::AbstractTrie)
+    print(io,"Trie{$(eltype(keytype(x))),$(valtype(x))}") ## error("should print key")
+    if length(path(x))>1
+        print(io,"@")
+        for p in path(x)[1:end-1]
             show(io,p)
             print(io,", ")
         end
+        show(io,path(x)[end])
     end
-    print_tree(io,x)
+    print_tree(io,x,20)
 end
 
+AbstractTrees.children(x::AbstractTrie) =
+    _children(x, get(x))
 
-AbstractTrees.children(x::Trie{K,V}) where {K,V} =
-    [ SubTrie(tuple(k), v) for (k,v) in pairs(x.nodes) ]
+_children(x::AbstractTrie, value) =
+    sort( [ SubTrie(tuple(path(x)...,k), v)
+            for (k,v) in pairs(nodes(x)) ],
+          by=e->path(e)[end] )
 
-function AbstractTrees.printnode(io::IO, x::Trie)
-    if get(x) !== missing
+_children(x::AbstractTrie, value::AbstractTrie) =
+    vcat(_children(x,nothing),
+         children(value))
+
+function AbstractTrees.printnode(io::IO, x::AbstractTrie)
+    !isempty(path(x)) && show(io,path(x)[end])
+    v = get(x)
+    if v !== missing
         print(io, " => ")
-        show(io, get(x))
-    end
-end
-
-AbstractTrees.children(x::SubTrie{K,V}) where {K,V} =
-    [ SubTrie(tuple(x.path..., k), v)
-      for (k,v) in pairs(x.value.nodes) ]
-
-function AbstractTrees.printnode(io::IO, x::SubTrie)
-    !isempty(x.path) && show(io,x.path[end])
-    if get(x) !== missing
-        print(io, " => ")
-        show(io, get(x))
+        if v isa AbstractTrie ## do not print children 
+            printnode(io, get(v))
+        else
+            printnode(io, v)
+        end
     end
 end
 
@@ -349,19 +350,19 @@ Trie{Int64,Int64} => 0
 ```
 
 """
-function subtrie!(f::Function,x::Trie{K,T},path::K...) where {K,T}
-    isempty(path) && return SubTrie(tuple(),x)
+function subtrie!(f::Function,x::Trie{K,T},p::K...) where {K,T}
+    isempty(p) && return SubTrie(path(x),x)
     x_::Trie{K,T} = x
-    for i in 1:(lastindex(path)-1)
-        k = path[i]
-        x_ = get!(() -> Trie{K,T}(f(path,i)),
+    for i in 1:(lastindex(p)-1)
+        k = p[i]
+        x_ = get!(() -> Trie{K,T}(f(p,i)),
                   nodes(x_), k)
     end
     ##if length(path) >= 1
-    x_ = get!(() -> Trie{K,T}(f(path,lastindex(path))),
-              nodes(x_), path[end])
+    x_ = get!(() -> Trie{K,T}(f(p,lastindex(p))),
+              nodes(x_), p[end])
     ##end
-    SubTrie(path, x_)
+    SubTrie((path(x)...,p...), x_)
 end
 
 
@@ -416,7 +417,7 @@ julia> subtrie(nothing, a, :a, :d)
 
 ```
 """
-function subtrie(::Nothing,x::AbstractTrie{K,T},path::K...) where {K,T}
+function subtrie(::Nothing,x::AbstractTrie{K,T},path...) where {K,T}
     subtrie((p,i)->nothing,x,path...)
 end
 
@@ -440,17 +441,28 @@ Trie{Symbol,String}
 julia> subtrie((x...) -> x, a, :a, :d)
 ((:a, :d), 2)
 
-
 ```
+
+!!! note
+    check
+
 """
-function subtrie(f::Function,x::AbstractTrie{K,T},path::K...) where {K,T}
+function subtrie(f::Function, x::AbstractTrie{K,T}, p...) where {K,T}
     x_ = x
-    for (i,k) in enumerate(path)
-        !(haskey(nodes(x_),k)) && return f(path,i)
+    for (i,k) in enumerate(p)
+        if !(haskey(nodes(x_),k))
+            if get(x_) isa AbstractTrie
+                inner=subtrie(f,get(x_),p[i:end]...)
+                return SubTrie((path(x)...,p...), inner)
+                ##x_ = get(x_)[k]
+            else
+                return f(p,i)
+            end
+        end
         # &&  @warn "no key $k" collect(keys(x_.nodes)) # k haskey(x_.nodes,k) x_.nodes
         x_ = nodes(x_)[k]
     end
-    SubTrie(path, x_)
+    SubTrie((path(x)...,p...), x_)
 end
 
 
@@ -494,13 +506,49 @@ Trie{Symbol,String}
 
 See also [`subtrie!`](@ref)
 """
-function Base.setindex!(x::Trie{K,T}, v::T, path::K...) where {K,T}
-    x_=subtrie!(x,path[1:end-1]...)
-    leaf=subtrie!(x_,path[end])
-    x_.value.nodes[path[end]] = Trie{K,T}(v,leaf.value.nodes)
-    leaf.value
+function Base.setindex!(x::AbstractTrie{K,T}, v, k::K, path...) where {K,T}
+    if isempty(path)
+        leaf=subtrie!(x,k)
+        nodes(x)[k] = Trie{K,T}(v,nodes(leaf))
+        leaf.value
+    else
+        subtrie!(x,k)[path...] = v
+    end
 end
 
+function Base.setindex!(x::AbstractTrie{K,T}, v, k, path...) where {K,T}
+    if get(x) isa AbstractTrie && typeof(k) <: eltype(keytype(get(x)))
+        get(x)[k,path...] = v
+    else
+        @show typeof(k) eltype(keytype(x))
+        error("key error ")
+    end
+end
+
+function Base.setindex!(x::AbstractTrie{K,T}, v, k::Function, path...) where {K,T}
+    x[k(x)...,path...] = v
+end
+
+function Base.setindex!(x::AbstractTrie{K,T}, v::AbstractTrie{K,T}, k::K) where {K,T}
+    nodes(x)[k] = v
+end
+
+function Base.delete!(x::AbstractTrie{K}, p1::K, p...) where K
+    if isempty(p)
+        delete!(nodes(x), p1)
+    else
+        delete!(nodes(x)[p1], p...)
+    end
+end
+
+function Base.delete!(x::AbstractTrie{K}, k, p...) where K
+    if get(x) isa AbstractTrie && typeof(k) <: eltype(keytype(get(x)))
+        delete!(nodes(get(x))[k], p...)
+    else
+        @show typeof(k) eltype(keytype(x))
+        error("key error ")
+    end
+end
 
 """
     Base.getindex(x::Trie{K,T}, path...) where {K,T}
@@ -509,7 +557,7 @@ Get `SubTrie` at `path`.
 
 See also [`SubTrie`](@ref).
 """
-function Base.getindex(x::Trie{K,T}, path::K...) where {K,T}
+function Base.getindex(x::Trie{K,T}, path...) where {K,T}
     subtrie(x,path...)
 end
 
@@ -520,7 +568,7 @@ Get `SubTrie` at `(x.path...,path...)`.
 
 See also [`SubTrie`](@ref).
 """
-function Base.getindex(x::SubTrie{K,V}, path::K...) where {K,V}
+function Base.getindex(x::SubTrie{K,V}, path...) where {K,V}
     SubTrie(tuple(x.path...,path...),subtrie(x,path...))
 end
 
@@ -536,7 +584,7 @@ Base.pairs(x::Trie) =
     pairs(SubTrie(tuple(),x))
 
 function Base.pairs(x::SubTrie{K,V}) where {K,V}
-    ( Pair{Tuple{Vararg{K,N} where N},Union{Missing,V}}(x.path, get(x))
+    ( x.path => get(x)
       for x in PreOrderDFS(x) )
 end
 
