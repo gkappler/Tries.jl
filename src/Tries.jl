@@ -13,6 +13,29 @@ export AbstractTrie, Trie, SubTrie, nodes, subtrie
 
 abstract type AbstractTrie{K,T} end
 
+export SortedTrie
+"""
+    SortedTrie{T,S<:Function}
+
+    tree::T
+    by::S
+"""
+struct SortedTrie{K,V,T,S<:Function} <: AbstractTrie{K,V}
+    tree::T
+    by::S
+    SortedTrie(tree,by) =
+        new{eltype(keytype(tree)),valtype(tree),typeof(tree),typeof(by)}(tree,by)
+end
+function Base.show(io::IO, x::SortedTrie)
+    print_tree(IOContext(io, :compact=>false),x)
+end
+AbstractTrees.children(x::SortedTrie) =
+    map(s->SortedTrie(s,x.by), sort(children(x.tree); by=x.by))
+
+function AbstractTrees.printnode(io::IO, x::SortedTrie)
+    printnode(io,x.tree)
+end
+
 """
     Base.length(x::Tries.AbstractTrie)
 
