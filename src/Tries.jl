@@ -228,11 +228,11 @@ end
     Base.keytype(::Type{Trie{K,V}}) where {K,V}
     Base.keytype(::Trie{K,V}) where {K,V}
 
-Returns `K`.
-!!! warning
-    please review: should this return `NTuple{N,K} where N`?
+Returns `NTuple{N,K} where N`.
+!!! note
+    `eltype(keytype(Trie{K,V})) == K`
 """
-Base.keytype(::Type{<:AbstractTrie{K,V}}) where {K,V} = K
+Base.keytype(::Type{<:AbstractTrie{K}}) where {K} = NTuple{N,K} where N
 Base.keytype(x::AbstractTrie) = keytype(typeof(x))
 
 

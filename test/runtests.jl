@@ -21,11 +21,11 @@ using Test
         @test valtype(x[:a]) == String
         @test valtype(typeof(x[:a])) == String
 
-        @test keytype(x) == Symbol
-        @test keytype(typeof(x)) == Symbol
-        @test keytype(x[:a]) == Symbol
-        @test keytype(typeof(x[:a])) == Symbol
-        @test_broken keytype(x) == Vararg{Symbol}
+        @test eltype(keytype(x)) == Symbol
+        @test eltype(keytype(typeof(x))) == Symbol
+        @test eltype(keytype(x[:a])) == Symbol
+        @test eltype(keytype(typeof(x[:a]))) == Symbol
+        @test keytype(x) == NTuple{N,Symbol} where N
     end
     @testset "getting subtries and values" begin
         @test x[:a] isa SubTrie
