@@ -44,8 +44,14 @@ Cumulative count of all nodes.
 Base.length(x::AbstractTrie) =
     1+_length(x)
 
-_length(x::AbstractTrie) =
-    isempty(nodes(x)) ? 0 : (0+length(nodes(x)) + (sum)(_length.(values(nodes(x)))))::Int
+function _length(x::AbstractTrie)
+    direct = isempty(nodes(x)) ? 0 : (0+length(nodes(x)) + (sum)(_length.(values(nodes(x)))))::Int
+    if get(x) isa AbstractTrie
+        direct + length(get(x))
+    else
+        direct
+    end
+end
 
 """
     Base.iterate(x::Tries.AbstractTrie, a...)
