@@ -7,6 +7,7 @@ module Tries
 import Base: get!, show, get, isempty, haskey, setindex!, getindex, pairs, keys, values, keytype, eltype, valtype
 import AbstractTrees
 import AbstractTrees: children, printnode, PreOrderDFS, print_tree
+export children
 ##using VectorDicts
 
 export AbstractTrie, Trie, SubTrie, nodes, subtrie
