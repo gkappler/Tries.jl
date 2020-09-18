@@ -547,7 +547,11 @@ end
 
 function Base.delete!(x::AbstractTrie{K}, k, p...) where K
     if get(x) isa AbstractTrie && typeof(k) <: eltype(keytype(get(x)))
-        delete!(nodes(get(x))[k], p...)
+        if isempty(p)
+            delete!(nodes(get(x)), k)
+        else
+            delete!(nodes(get(x))[k], p...)
+        end
     else
         @show typeof(k) eltype(keytype(x))
         error("key error ")
