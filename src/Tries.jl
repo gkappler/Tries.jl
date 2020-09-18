@@ -198,10 +198,10 @@ function Base.show(io::IO, x::AbstractTrie)
             show(io,p)
             print(io,", ")
         end
-        show(io,path(x)[end])
     end
     print_tree(io,x,20)
 end
+
 
 AbstractTrees.children(x::AbstractTrie) =
     _children(x, get(x))
