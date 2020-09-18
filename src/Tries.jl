@@ -83,17 +83,15 @@ struct SubTrie{K,T} <: AbstractTrie{K,T}
         new{K,V}(path, t)
     SubTrie(path::Tuple, st::SubTrie{K,V}) where {K,V} =
         new{K,V}(path, st.value)
+    SubTrie{K,V}(path::Tuple, x) where {K,V} =
+        new{K,V}(path, Trie{K,V}(x))
+    SubTrie{K,V}(path::Tuple, x::AbstractTrie{K,V}) where {K,V} =
+        new{K,V}(path, x)
 end
 nodes(x::SubTrie) = x.value.nodes
 
-subtrie(x::SubTrie, a...) =
-    SubTrie(x.path,subtrie(x.value,a...))
 
-subtrie!(x::SubTrie, a...) =
-    SubTrie(x.path,subtrie!(x.value,a...))
 
-subtrie!(f::Function, x::SubTrie, a...) =
-    SubTrie(x.path,subtrie!(f,x.value,a...))
 
 """
     Trie{K,T}()
@@ -325,20 +323,20 @@ export subtrie!
 Return a subtree at `path`.
 Nodes missing in `x` along path are created and populated with values `missing`.
 """
-subtrie!(x::Trie{K,V},path::K...) where {K,V} =
+subtrie!(x::AbstractTrie{K,V},path::K...) where {K,V} =
     subtrie!((_,_)->missing, x,path...)
 
 """
     subtrie!(f::Function,x::Trie,path...)
 
 Return a subtree at `path`.
-Nodes missing in `x` along path are created and populated with values `f(path, index)`.
+Nodes missing in `x` along path are created and populated with values `f(path, key)`.
 
 ```jldoctest
 julia> a = Trie{Int,Int}(0)
 Trie{Int64,Int64} => 0
 
-julia> subtrie!((p,i)->i, a, 4,3,2,1)
+julia> subtrie!((path,key)->length(p)+1, a, 4,3,2,1)
 SubTrie{Int64,Int64} @ 4, 3, 2, 1 => 4
 
 julia> a
@@ -351,19 +349,24 @@ Trie{Int64,Int64} => 0
 ```
 
 """
-function subtrie!(f::Function,x::Trie{K,T},p::K...) where {K,T}
-    isempty(p) && return SubTrie(path(x),x)
-    x_::Trie{K,T} = x
-    for i in 1:(lastindex(p)-1)
-        k = p[i]
-        x_ = get!(() -> Trie{K,T}(f(p,i)),
-                  nodes(x_), k)
+function subtrie!(f::Function, x::AbstractTrie{K,T}, p1::K, p...) where {K,T}
+    st = SubTrie((path(x)...,p1),
+                 get!(() -> Trie{K,T}(f(path(x),p1)),
+                      nodes(x), p1))
+    if isempty(p)
+        st
+    else
+        subtrie!(f, st, p...)
     end
-    ##if length(path) >= 1
-    x_ = get!(() -> Trie{K,T}(f(p,lastindex(p))),
-              nodes(x_), p[end])
-    ##end
-    SubTrie((path(x)...,p...), x_)
+end
+
+function subtrie!(f::Function, x::AbstractTrie, k::K, p...) where K
+    if get(x) isa AbstractTrie && K <: eltype(keytype(get(x)))
+        subtrie!(f,SubTrie(path(x),get(x)), k, p...)
+    else
+        @show typeof(k) eltype(keytype(x))
+        error("key error ")
+    end
 end
 
 

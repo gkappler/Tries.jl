@@ -51,8 +51,8 @@ using Test
         @test get(x[:z][:y])===missing
         get!(x,(:z2,:y2))
         @test get(x,(:z2,:y2)) === missing
-        @test get!(x,(:z3,:y3)) do k,i
-            string(k[1:i])
+        @test get!(x,(:z3,:y3)) do p,k
+            string((p...,k))
         end == "(:z3, :y3)"
     end
 
@@ -71,14 +71,14 @@ using Test
     show(x[:a,:b])
     @testset "populating path" begin
         x=Trie{Int,Int}()
-        leaf = subtrie!(x, 1,2,3,4,5) do x,i
-            x[i]+1
+        leaf = subtrie!(x, 1,2,3,4,5) do p,k
+            k+1
         end
         @test get(leaf)==6
         @test get(x[1])==2
         @test get(x[1,2])==3
-        leaf2 = subtrie!(x[1,2],9,10) do x,i
-            x[i]-1
+        leaf2 = subtrie!(x[1,2],9,10) do p,k
+            k-1
         end
         @test get(x[1,2,9,10])==9
     end
