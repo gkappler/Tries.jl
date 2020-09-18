@@ -213,7 +213,7 @@ _children(x::AbstractTrie, value) =
 
 _children(x::AbstractTrie, value::AbstractTrie) =
     vcat(_children(x,nothing),
-         children(value))
+         children(SubTrie(path(x),value)))
 
 function AbstractTrees.printnode(io::IO, x::AbstractTrie)
     !isempty(path(x)) && show(io,path(x)[end])
@@ -588,7 +588,7 @@ Base.pairs(x::Trie) =
     pairs(SubTrie(tuple(),x))
 
 function Base.pairs(x::SubTrie{K,V}) where {K,V}
-    ( x.path => get(x)
+    ( path(x) => get(x)
       for x in PreOrderDFS(x) )
 end
 
