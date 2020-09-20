@@ -618,4 +618,8 @@ See also [`pairs`](@ref)
 Base.values(x::AbstractTrie) =
     ( kv.second for kv in pairs(x) )
 
+import Base: convert
+Base.convert(::Type{Trie{K,V}}, x::SubTrie{K,V}) where {K,V} =
+    x.value
+
 end # module
