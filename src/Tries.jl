@@ -624,4 +624,15 @@ import Base: convert
 Base.convert(::Type{Trie{K,V}}, x::SubTrie{K,V}) where {K,V} =
     x.value
 
+function Base.map(f::Function, x::AbstractTrie{K,V}) where {K,V}
+    outputType = Base.return_types(f, (eltype(x),))[1]
+    result = Trie{K,outputType}(f(tuple() => x[]))
+    for (k,v) in pairs(x)
+        if !isempty(k)
+            result[k...] = f(k => v)
+        end
+    end
+    result
+end
+
 end # module
