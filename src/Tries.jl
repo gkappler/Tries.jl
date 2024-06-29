@@ -66,6 +66,7 @@ struct Trie{K,T} <: AbstractTrie{K,T}
     value::Union{Missing,T}
     nodes::Dict{K,Trie{K,T}}
 end
+path(x::Trie) = tuple()
 
 """
     nodes(x::AbstractTrie{K,T})
@@ -89,6 +90,7 @@ struct SubTrie{K,T} <: AbstractTrie{K,T}
         new{K,V}(path, x)
 end
 nodes(x::SubTrie) = x.value.nodes
+path(x::SubTrie) = x.path
 
 
 
