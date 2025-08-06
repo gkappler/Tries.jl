@@ -66,7 +66,6 @@ struct Trie{K,T} <: AbstractTrie{K,T}
     value::Union{Missing,T}
     nodes::Dict{K,Trie{K,T}}
 end
-path(x::Trie) = tuple()
 
 """
     nodes(x::AbstractTrie{K,T})
