@@ -89,7 +89,6 @@ struct SubTrie{K,T} <: AbstractTrie{K,T}
         new{K,V}(path, x)
 end
 nodes(x::SubTrie) = x.value.nodes
-path(x::SubTrie) = x.path
 
 subtrie(x::SubTrie, a...) =
     SubTrie((x.path,a...),subtrie(x.value,a...))
