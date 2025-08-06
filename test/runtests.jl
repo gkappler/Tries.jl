@@ -1,6 +1,15 @@
-using Tries
+#using Tries
 using Test
 
+x=Trie((:a,)=>"a", (:a,:b)=>"c", (:a,:c,:d)=>"z", (:a,:b,:d)=>1)
+
+subtrie(x, :a, :b)
+
+y=Trie((:z,)=>"z", (:z,:y)=>"x", (:z,:y,:x)=>"w", (:z,:b,:d)=>"y")
+x[:a,:b] 
+x[:a,:b] = y
+Trie((pairs(x)))
+Trie(pairs(x)|>collect)
 @testset "Tries.jl" begin
     x=Trie((:a,)=>"a", (:a,:b)=>"c", (:a,:c,:d)=>"z", (:a,:b,:d)=>1)
     x=Trie((:a,)=>"a", (:a,:b)=>"c", (:a,:c,:d)=>"z", (:a,:b,:d)=>"y")

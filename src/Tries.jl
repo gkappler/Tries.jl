@@ -1,6 +1,6 @@
 """
 Implemented of a Trie data structure.  
-This is an associative data structure with keys of type `NTuple{N,K} where N` and values of type `V`.
+`Trie{K,V}` is an associative data structure with keys of type `NTuple{N,K} where N` and values of type `V`.
 """
 module Tries
 
@@ -92,6 +92,8 @@ end
 nodes(x::SubTrie) = x.value.nodes
 path(x::SubTrie) = x.path
 
+subtrie(x::SubTrie, a...) =
+    SubTrie((x.path,a...),subtrie(x.value,a...))
 
 
 
@@ -139,25 +141,21 @@ Trie{Symbol,String}
 
 See also [`setindex!`](@ref).
 """
-function Trie(values::Vararg{Pair{NTuple{N,K},T} where N}) where {K,T}
-    r = Trie{K,T}(missing, Dict{K,Trie{K,T}}())
-    for (k,v) in values
-        r[k...]=v
+Trie(values::Vararg{Pair{NTuple{N,K},T} where N}) where {K,T}    = _Trie(K,T,[values...])
+Trie(values::Vararg{Pair{Tuple{Vararg{K}},T} where N}) where {K,T} = _Trie(K,T,[values...])
+Trie(values::Vararg{Pair{Vector{K},T}}) where {K,T} = _Trie(K,T,[values...])
+Trie(values::Vararg{Pair{NTuple{N,K},<:Any} where N}) where {K} = _Trie(K,Any,[values...])
+Trie(values::Vector{Pair{Tuple{Vararg{K}},T} where N}) where {K,T} = _Trie(K,T,values)
+function _Trie(K,T,values)
+    v_ = sort(values; by=x->length(x[1]))
+    #@info "?" v_
+    val, si = if isempty(v_[1][1])
+        v_[1][2], 2
+    else
+        missing, 1
     end
-    r
-end
-
-function Trie(values::Vararg{Pair{Vector{K},T}}) where {K,T}
-    r = Trie{K,T}(missing, Dict{K,Trie{K,T}}())
-    for (k,v) in values
-        r[k...]=v
-    end
-    r
-end
-
-function Trie(values::Vararg{Pair{NTuple{N,K},<:Any} where N}) where {K}
-    r = Trie{K,Any}(missing, Dict{K,Trie{K,Any}}())
-    for (k,v) in values
+    r = Trie{K,T}(val, Dict{K,Trie{K,T}}())
+    for (k,v) in v_[si:end]
         r[k...]=v
     end
     r
@@ -510,6 +508,8 @@ Trie{Symbol,String}
 
 ```
 
+This seems slow.
+
 See also [`subtrie!`](@ref)
 """
 function Base.setindex!(x::AbstractTrie{K,T}, v, k::K, path...) where {K,T}
@@ -559,6 +559,21 @@ function Base.delete!(x::AbstractTrie{K}, k, p...) where K
         error("key error ")
     end
 end
+
+
+function setindex!(x::Trie{K,T}, v::Trie{K,T}, path::K...) where {K,T}
+    x_=subtrie!(x,path[1:end-1]...)
+    leaf=x_.value.nodes[path[end]]
+    x_.value.nodes[path[end]] = v
+    leaf
+end
+
+
+
+function weave!(weavef::Function,base::Trie{K,T}, patch::Trie{K,T}) where {K,T}
+#    for in pairs(patch)
+end
+
 
 """
     Base.getindex(x::Trie{K,T}, path...) where {K,T}
